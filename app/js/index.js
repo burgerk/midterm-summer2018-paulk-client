@@ -11,7 +11,7 @@ function fixNav() {
     document.body.style.paddingTop = nav.offsetHeight + 'px';
     document.body.classList.add('fixed-nav');
   } else {
-    document.body.classList.remove('fixed-nav');0000001
+    document.body.classList.remove('fixed-nav');
     document.body.style.paddingTop = 0;
   }
 }
@@ -50,7 +50,7 @@ function fetchLab() {
     data.forEach((recipe) => {
       output += `
         <div class="recipe-preview">
-        <h2><a href="recipe/${recipe._id}">${recipe.title}</a></h2>
+        <h2><a href="#${recipe._id}">${recipe.title}</a></h2>
         <img src="/img/recipes/${recipe.image}" />
         <p>${recipe.description}</p>
         <span onclick="deleteme('${recipe._id}')">✖︎</span>
@@ -63,11 +63,59 @@ function fetchLab() {
   })
 }
 
-fetchLab();
+function choosePageRendering(){
+  console.log('choosePage hash is ' + window.location.hash)
+  if(window.location.hash === '#recipes'){
+    fetchLab()
+  } else {
+    showDetailPage()
+  }
+}
+
+if (!location.hash || location.href == '/' || location.href == '#recipes' ) {
+  location.hash = '#recipes';
+}
+choosePageRendering();
+
+function showDetailPage(){
+
+  console.log('showDetailPage hash is ' + window.location.hash)
+  
+  let navLinkId = window.location.hash.substring(1);
+  console.log('navlinkId='+ navLinkId);
+  fetch(`http://localhost:3001/api/recipes/${navLinkId}`, {
+    method: 'get'
+  }).then(res => res.json())
+  .then( data => {
+    let recipeContent = `
+    <div class="recipe-preview">
+    <h2>Recipe for ${data.title}</h2>
+    <img src="/img/recipes/${data.image}" />
+    <h2>Ingredients</h2>
+    <ul>
+    <li>${data.ingredients[0]}</li>
+    <li>${data.ingredients[1]}</li>
+    <li>${data.ingredients[2]}</li>
+  </ul>
+  <h2>Instructions</h2>
+    <ul>
+      <li>${data.preparation[0].step}</li>
+      <li>${data.preparation[1].step}</li>
+      <li>${data.preparation[2].step}</li>
+    </ul>
+    </div>
+  `
+  siteWrap.innerHTML = recipeContent;
+  })
+}
+
+
+
+//fetchLab();
 
 const newLinks = document.querySelectorAll('.site-wrap h2 a')
 newLinks.forEach( link => link.addEventListener('click', detailme) )
-
+window.addEventListener('hashchange', choosePageRendering);
 window.addEventListener('scroll', fixNav);
 
 function deleteme(thingtodelete) {
